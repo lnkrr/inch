@@ -4,7 +4,6 @@ INCLUDE_DIR := include
 SRC_BOOT_DIR := $(SRC_DIR)/boot
 SRC_KERNEL_DIR := $(SRC_DIR)/kernel
 
-SRC_KERNEL_C_DIR := $(SRC_KERNEL_DIR)/c
 SRC_KERNEL_ASM_DIR := $(SRC_KERNEL_DIR)/asm
 
 OBJ_DIR := obj
@@ -14,27 +13,24 @@ BUILD_DIR := build
 OBJ_BOOT_DIR := $(OBJ_DIR)/boot
 OBJ_KERNEL_DIR := $(OBJ_DIR)/kernel
 
-OBJ_KERNEL_C_DIR := $(OBJ_KERNEL_DIR)/c
 OBJ_KERNEL_ASM_DIR := $(OBJ_KERNEL_DIR)/asm
 
 ASM := nasm
-CC := gcc
+CENTC := centc
 LD := ld
 
 QEMU := qemu-system-i386
 
 C_FLAGS := -Wall -Wextra -Wpedantic -ffreestanding -fno-pie -O3 -c -m32 -I$(INCLUDE_DIR) -I$(INCLUDE_DIR)/inch/libc -nostdinc -nostdlib
+CENT_FLAGS := -O --reloc-model static --emit obj -t i386-pc-elf
 ASM_FLAGS := -Wall
 
 LD_FLAGS := -melf_i386 -no-pie
 
-SRC_KERNEL_C_FILES := $(wildcard $(SRC_KERNEL_C_DIR)/**/*.c $(SRC_KERNEL_C_DIR)/*.c)
 SRC_KERNEL_ASM_FILES := $(wildcard $(SRC_KERNEL_ASM_DIR)/**/*.asm $(SRC_KERNEL_ASM_DIR)/*.asm)
-SRC_KERNEL_FILES := $(SRC_KERNEL_C_FILES) $(SRC_KERNEL_ASM_FILES)
 
-OBJ_KERNEL_C_FILES := $(patsubst $(SRC_KERNEL_DIR)/%.c,$(OBJ_KERNEL_DIR)/%.o,$(SRC_KERNEL_C_FILES))
 OBJ_KERNEL_ASM_FILES := $(patsubst $(SRC_KERNEL_DIR)/%.asm,$(OBJ_KERNEL_DIR)/%.o,$(SRC_KERNEL_ASM_FILES))
-OBJ_KERNEL_FILES := $(OBJ_KERNEL_C_FILES) $(OBJ_KERNEL_ASM_FILES)
+OBJ_KERNEL_FILES := $(OBJ_KERNEL_DIR)/cent/main.o $(OBJ_KERNEL_ASM_FILES)
 
 BOOT_BIN := $(BIN_DIR)/boot.bin
 KERNEL_BIN := $(BIN_DIR)/kernel.bin
@@ -57,10 +53,10 @@ $(OBJ_KERNEL_ASM_DIR)/%.o: $(SRC_KERNEL_ASM_DIR)/%.asm
 
 	$(ASM) -o $@ $< $(ASM_FLAGS) -felf
 
-$(OBJ_KERNEL_C_DIR)/%.o: $(SRC_KERNEL_C_DIR)/%.c
+$(OBJ_KERNEL_DIR)/cent/main.o: $(SRC_KERNEL_DIR)/cent/main.cn
 	mkdir -p $(@D)
 
-	$(CC) -o $@ $< $(C_FLAGS)
+	$(CENTC) -o $@ $< $(CENT_FLAGS)
 
 $(BUILD_DIR) $(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@

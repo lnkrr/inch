@@ -1,0 +1,49 @@
+const VGA_BUF = 0xb8000 as *mut u8;
+const COLUMNS = 80;
+
+type Pos {
+    row: u8,
+    col: u8,
+}
+
+mut current_pos: Pos = Pos { row: 0 as u8, col: 0 as u8 };
+
+fn byte_offset(p: *mut u8, n: usize) *mut u8 {
+    return ((p as usize) + n) as *mut u8;
+}
+
+fn write_char(c: u8) {
+    *byte_offset(
+        VGA_BUF, (current_pos.row as u16 * COLUMNS + current_pos.col) * 2
+    ) = c;
+
+    if (c == '\n' as u8) {
+        while current_pos.col < COLUMNS {
+            write_char(' ' as u8);
+        }
+
+        return;
+    }
+
+    if current_pos.col >= COLUMNS {
+        current_pos.row += 1;
+        current_pos.col = 0;
+    }
+
+    current_pos.col += 1;
+}
+
+fn write(s: []u8) {
+    for c in s {
+        write_char(c);
+    }
+}
+
+fn writeln(s: []u8) {
+    write(s);
+    write_char('\n' as u8);
+}
+
+!(extern) fn main() {
+    writeln("Welcome to \"Cent\"OS :)");
+}
