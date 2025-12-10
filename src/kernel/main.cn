@@ -1,0 +1,5 @@
+with vga;
+
+!(extern) fn main() {
+    vga::writeln("Welcome to \"Cent\"OS :)");
+}
